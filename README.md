@@ -62,19 +62,19 @@ user-registration-app/
 
 - Node.js 18+
 - Python 3.11+
-- PostgreSQL running locally (or a free cloud database — see below)
+- A free [Neon](https://neon.tech) account (no local PostgreSQL needed)
 
 ---
 
-### 1. Set up the database
+### 1. Set up the database (Neon)
 
-Create a PostgreSQL database called `registration_db`:
-
-```bash
-psql -U postgres
-CREATE DATABASE registration_db;
-\q
-```
+1. Go to [neon.tech](https://neon.tech) and sign up for free
+2. Create a new project
+3. Click **Connect** and copy your connection string — it looks like:
+   ```
+   postgresql://username:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+   ```
+4. You will paste this into `backend/.env` in the next step
 
 ---
 
@@ -92,8 +92,8 @@ pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env and add your DATABASE_URL, e.g.:
-# DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/registration_db
+# Edit .env and paste your Neon connection string:
+# DATABASE_URL=postgresql://username:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
 
 # Start the server
 uvicorn main:app --reload
