@@ -6,6 +6,19 @@ A full-stack user registration project built to demonstrate how a real web appli
 
 ---
 
+## Live Deployment
+
+| Check | Result |
+|---|---|
+| Vercel frontend | ✓ https://authbridge.vercel.app |
+| Admin dashboard | ✓ https://authbridge.vercel.app/admin |
+| Railway backend | ✓ https://authbridge-production.up.railway.app |
+| Swagger docs | ✓ https://authbridge-production.up.railway.app/docs |
+| POST /api/register | ✓ Returns `id`, `full_name`, `email`, `created_at` |
+| CORS | ✓ Vercel origin allowlisted on Railway backend |
+
+---
+
 ## How It All Connects
 
 ```
@@ -148,7 +161,8 @@ The frontend will be running at **http://localhost:3000**
 {
   "id": 1,
   "full_name": "Jane Smith",
-  "email": "jane@example.com"
+  "email": "jane@example.com",
+  "created_at": "2026-04-27T17:05:17.164728Z"
 }
 ```
 
@@ -173,7 +187,7 @@ CREATE TABLE users (
 );
 ```
 
-Passwords are hashed with **bcrypt** via passlib. The plain-text password is never stored.
+Passwords are hashed with **bcrypt** (used directly — passlib is not used). The plain-text password is never stored.
 
 ---
 
