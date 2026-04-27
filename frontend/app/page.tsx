@@ -8,7 +8,7 @@ export default function Home() {
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900">Create an account</h1>
             <p className="mt-2 text-sm text-gray-500">
-              Next.js · FastAPI · PostgreSQL
+              AuthBridge · Next.js · FastAPI · PostgreSQL
             </p>
           </div>
           <RegistrationForm />

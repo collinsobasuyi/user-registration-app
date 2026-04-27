@@ -1,4 +1,4 @@
-# CLAUDE.md — User Registration App
+# CLAUDE.md — AuthBridge
 
 This file gives Claude Code (and any reviewer) a complete picture of this project: what it is, how it is built, what decisions were made, and how to work with it.
 

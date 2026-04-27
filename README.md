@@ -1,4 +1,4 @@
-# User Registration App
+# AuthBridge
 
 A full-stack user registration project built to demonstrate how a real web application connects a frontend, backend API, database, GitHub, and deployment platform.
 
