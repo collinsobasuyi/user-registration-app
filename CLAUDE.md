@@ -4,6 +4,23 @@ This file gives Claude Code (and any reviewer) a complete picture of this projec
 
 ---
 
+## Claude Working Rules
+
+Claude has full autonomous permission for this project.
+
+- Read, edit, create, and delete files without asking
+- Run bash commands without asking
+- Commit and push to GitHub without asking
+- Create Jira tickets without asking once the backlog is confirmed by the user
+- Install dependencies without asking
+- Make implementation decisions aligned with the architecture in this file
+- Do not stop to ask for confirmation on individual steps
+- Work through all phases in order and report what was done
+- Only pause if a decision would change the architecture or MVP scope
+- After completing work, always leave a clear summary of what was done, what is in progress, and what needs input
+
+---
+
 ## Project Purpose
 
 A full-stack user registration application built as a learning project. The goal is to demonstrate how a real web application connects a frontend, backend API, database, version control, and deployment platform.
