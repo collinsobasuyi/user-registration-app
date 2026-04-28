@@ -1,70 +1,95 @@
 # AuthBridge
 
-A full-stack user registration project built to demonstrate how a real web application connects a frontend, backend API, database, GitHub, and deployment platform.
+A full-stack user authentication project built to demonstrate how a real web application connects a frontend, backend API, database, GitHub, and deployment platform.
 
-**Stack:** Next.js · FastAPI · PostgreSQL · Vercel · Railway
+**Stack:** Next.js 15 · FastAPI · PostgreSQL · Vercel · Railway
 
 ---
 
-## Live Deployment
+## Live URLs
 
-| Check | Result |
+### Frontend — Vercel
+
+| Page | URL |
 |---|---|
-| Vercel frontend | ✓ https://authbridge.vercel.app |
-| Admin dashboard | ✓ https://authbridge.vercel.app/admin |
-| Railway backend | ✓ https://authbridge-production.up.railway.app |
-| Swagger docs | ✓ https://authbridge-production.up.railway.app/docs |
-| POST /api/register | ✓ Returns `id`, `full_name`, `email`, `created_at` |
-| CORS | ✓ Vercel origin allowlisted on Railway backend |
+| Registration | https://authbridge.vercel.app |
+| Login | https://authbridge.vercel.app/login |
+| Account | https://authbridge.vercel.app/account |
+| Admin dashboard | https://authbridge.vercel.app/admin |
+
+### Backend — Railway
+
+| Resource | URL |
+|---|---|
+| Health check | https://authbridge-production.up.railway.app |
+| Swagger / API docs | https://authbridge-production.up.railway.app/docs |
+| Register endpoint | https://authbridge-production.up.railway.app/api/register |
+| Login endpoint | https://authbridge-production.up.railway.app/api/login |
+| Users endpoint | https://authbridge-production.up.railway.app/api/users |
+| Test 500 error | https://authbridge-production.up.railway.app/api/test-error |
 
 ---
 
 ## How It All Connects
 
 ```
-Browser (Next.js)
-      |
-      | HTTP POST /api/register
-      v
-FastAPI Backend
-      |
-      | SQLAlchemy ORM
-      v
-PostgreSQL Database
+Browser (Next.js — Vercel)
+        |
+        | HTTP  POST /api/register
+        |       POST /api/login
+        |       GET  /api/users/{id}
+        |       PATCH /api/users/{id}
+        |       DELETE /api/users/{id}
+        v
+FastAPI Backend (Railway)
+        |
+        | SQLAlchemy ORM
+        v
+PostgreSQL Database (Neon)
 ```
 
-1. User fills in the registration form in the browser
-2. Next.js sends a POST request to the FastAPI backend
-3. FastAPI validates the data, hashes the password, and saves the user to PostgreSQL
-4. The frontend shows a success or error message
+**User flow:**
+1. User registers at `/` — account saved to PostgreSQL with bcrypt-hashed password
+2. User logs in at `/login` — credentials verified, session stored in browser
+3. User manages account at `/account` — edit name, change password, delete account
+4. Admin views all users at `/admin` — full CRUD user management table
 
 ---
 
 ## Project Structure
 
 ```
-user-registration-app/
-├── frontend/                  # Next.js app
+AuthBridge/
+├── frontend/
 │   ├── app/
-│   │   ├── layout.tsx         # Root layout
-│   │   ├── page.tsx           # Registration page
-│   │   └── globals.css        # Global styles
+│   │   ├── layout.tsx              Root layout, Inter font, metadata
+│   │   ├── page.tsx                Registration page (split-panel layout)
+│   │   ├── login/
+│   │   │   └── page.tsx            Login page
+│   │   ├── account/
+│   │   │   └── page.tsx            Account management (edit name, password, delete)
+│   │   ├── admin/
+│   │   │   └── page.tsx            Admin dashboard with user table
+│   │   └── globals.css             Tailwind v4 import
 │   ├── components/
-│   │   └── registration-form.tsx   # Form with loading + error states
-│   ├── .env.local.example     # Environment variable template
+│   │   ├── registration-form.tsx   Registration form with all states
+│   │   └── login-form.tsx          Login form
+│   ├── .env.local.example          Template — copy to .env.local
 │   ├── package.json
 │   ├── next.config.ts
 │   └── tsconfig.json
 │
-├── backend/                   # FastAPI app
-│   ├── main.py                # API routes and app setup
-│   ├── database.py            # Database connection
-│   ├── models.py              # SQLAlchemy User model
-│   ├── schemas.py             # Pydantic request/response schemas
-│   ├── requirements.txt       # Python dependencies
-│   └── .env.example           # Environment variable template
+├── backend/
+│   ├── main.py                     FastAPI app — all routes, CORS, exception handler
+│   ├── database.py                 SQLAlchemy engine, session, get_db dependency
+│   ├── models.py                   User table definition
+│   ├── schemas.py                  Pydantic schemas: register, login, update, response
+│   ├── requirements.txt            Python dependencies
+│   └── .env.example                Template — copy to .env
 │
-└── .gitignore
+├── .gitignore
+├── CLAUDE.md
+└── README.md
 ```
 
 ---
@@ -87,7 +112,7 @@ user-registration-app/
    ```
    postgresql://username:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
    ```
-4. You will paste this into `backend/.env` in the next step
+4. Paste this into `backend/.env` in the next step
 
 ---
 
@@ -105,16 +130,14 @@ pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env and paste your Neon connection string:
+# Edit .env and add your Neon connection string:
 # DATABASE_URL=postgresql://username:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
 
 # Start the server
 uvicorn main:app --reload
 ```
 
-The API will be running at **http://localhost:8000**
-
-Visit http://localhost:8000/docs to see the interactive API documentation.
+API running at **http://localhost:8000** · Swagger docs at **http://localhost:8000/docs**
 
 ---
 
@@ -134,20 +157,28 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-The frontend will be running at **http://localhost:3000**
+Frontend running at **http://localhost:3000**
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Health check |
-| POST | `/api/register` | Register a new user |
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | `/` | Health check | None |
+| POST | `/api/register` | Create new user | None |
+| POST | `/api/login` | Verify credentials and return user | None |
+| GET | `/api/users` | List all users | None |
+| GET | `/api/users/{id}` | Get user by ID | None |
+| PUT | `/api/users/{id}` | Full update (name + email) | None |
+| PATCH | `/api/users/{id}` | Partial update (name, email, or password) | None |
+| DELETE | `/api/users/{id}` | Delete user | None |
+| GET | `/api/test-error` | Trigger deliberate 500 (dev/learning only) | None |
+
+---
 
 ### POST /api/register
 
-**Request body:**
 ```json
 {
   "full_name": "Jane Smith",
@@ -156,7 +187,7 @@ The frontend will be running at **http://localhost:3000**
 }
 ```
 
-**Success response (201):**
+**201 Created:**
 ```json
 {
   "id": 1,
@@ -166,12 +197,72 @@ The frontend will be running at **http://localhost:3000**
 }
 ```
 
-**Error response (400):**
+**400 — duplicate email:**
+```json
+{ "detail": "An account with this email already exists." }
+```
+
+**422 — validation failure (e.g. password too short, empty name):**
+```json
+{ "detail": [{ "type": "string_too_short", "loc": ["body", "password"], ... }] }
+```
+
+---
+
+### POST /api/login
+
 ```json
 {
-  "detail": "An account with this email already exists."
+  "email": "jane@example.com",
+  "password": "securepassword"
 }
 ```
+
+**200 OK:**
+```json
+{
+  "id": 1,
+  "full_name": "Jane Smith",
+  "email": "jane@example.com",
+  "created_at": "2026-04-27T17:05:17.164728Z"
+}
+```
+
+**401 — wrong credentials:**
+```json
+{ "detail": "Invalid email or password." }
+```
+
+---
+
+### PATCH /api/users/{id}
+
+All fields optional — send only what you want to change:
+
+```json
+{ "full_name": "Jane Updated" }
+```
+```json
+{ "password": "newpassword123" }
+```
+```json
+{ "email": "new@example.com" }
+```
+
+---
+
+## HTTP Status Codes
+
+| Code | Meaning | When |
+|---|---|---|
+| 200 | OK | Successful GET, PUT, PATCH |
+| 201 | Created | Successful POST /api/register |
+| 204 | No Content | Successful DELETE |
+| 400 | Bad Request | Duplicate email |
+| 401 | Unauthorised | Wrong login credentials |
+| 404 | Not Found | User ID does not exist |
+| 422 | Unprocessable Entity | Validation failure (missing field, short password, empty name) |
+| 500 | Internal Server Error | Unhandled exception — safe message returned, no stack trace |
 
 ---
 
@@ -179,47 +270,84 @@ The frontend will be running at **http://localhost:3000**
 
 ```sql
 CREATE TABLE users (
-  id             SERIAL PRIMARY KEY,
-  full_name      VARCHAR NOT NULL,
-  email          VARCHAR UNIQUE NOT NULL,
+  id              SERIAL PRIMARY KEY,
+  full_name       VARCHAR NOT NULL,
+  email           VARCHAR UNIQUE NOT NULL,
   hashed_password VARCHAR NOT NULL,
-  created_at     TIMESTAMPTZ DEFAULT NOW()
+  created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
-Passwords are hashed with **bcrypt** (used directly — passlib is not used). The plain-text password is never stored.
+Passwords are hashed with **bcrypt** (used directly — passlib is not used). The plain-text password is never stored or returned.
+
+---
+
+## Environment Variables
+
+### Backend — `backend/.env`
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | Full Neon PostgreSQL connection string including `?sslmode=require` |
+
+### Frontend — `frontend/.env.local`
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | URL of the running FastAPI backend |
+| `NEXT_PUBLIC_ADMIN_PASSWORD` | Password for the `/admin` dashboard (fails closed if not set) |
 
 ---
 
 ## Deployment
 
-### Frontend → Vercel
+### Deploy order
 
-1. Push to GitHub
-2. Connect the repo in Vercel
-3. Set the root directory to `frontend`
-4. Add environment variable: `NEXT_PUBLIC_API_URL=https://your-backend-url.railway.app`
-5. Deploy
+1. Deploy backend to Railway first → get Railway URL
+2. Deploy frontend to Vercel → set `NEXT_PUBLIC_API_URL` to Railway URL
+3. Add Vercel URL to `allow_origins` in `backend/main.py` → push → Railway redeploys
+4. Test end-to-end: Vercel form → Railway API → Neon database
 
 ### Backend → Railway
 
-1. Go to [railway.app](https://railway.app) and create a new project
-2. Add a PostgreSQL database — Railway gives you the `DATABASE_URL` automatically
-3. Deploy the `backend/` folder
-4. Set the start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Add environment variable: `DATABASE_URL` (from the Railway PostgreSQL service)
-6. Update the CORS origin in `main.py` to your Vercel frontend URL
+- Root directory: `backend`
+- Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- Environment variable: `DATABASE_URL` (full Neon string with `?sslmode=require`)
+
+### Frontend → Vercel
+
+- Root directory: `frontend`
+- Framework: Next.js (auto-detected)
+- Environment variables:
+  - `NEXT_PUBLIC_API_URL` — Railway backend URL
+  - `NEXT_PUBLIC_ADMIN_PASSWORD` — your chosen admin password
+
+---
+
+## Troubleshooting
+
+| Problem | Cause | Fix |
+|---|---|---|
+| CORS error in browser | Vercel URL not in `allow_origins` | Add Vercel URL to `main.py` CORS list and redeploy Railway |
+| Neon connection error | Neon idle timeout | `pool_pre_ping=True` handles reconnects automatically |
+| 422 on registration | Missing field or short password | All fields required, password min 8 chars, name min 1 char |
+| Build fails on Vercel | TypeScript error | Run `npm run build` locally first to catch errors |
+| Admin page rejects all passwords | `NEXT_PUBLIC_ADMIN_PASSWORD` not set in Vercel | Add the env var in Vercel → Settings → Environment Variables |
+| Login returns 401 | Wrong email or password | Message is intentionally the same for both to prevent user enumeration |
 
 ---
 
 ## What You Learn
 
-- How a frontend and backend communicate over HTTP
-- How FastAPI handles request validation with Pydantic
-- How SQLAlchemy maps Python classes to database tables
-- Why passwords must be hashed before storing
-- How environment variables keep secrets out of your code
-- How to deploy a full-stack app across two platforms
+- How a browser and a separate backend API communicate over HTTP
+- How FastAPI validates requests using Pydantic schemas
+- How SQLAlchemy maps Python classes to PostgreSQL tables
+- Why passwords must be hashed with bcrypt and never stored plain
+- How environment variables keep credentials out of source code
+- The difference between GET, POST, PUT, PATCH, and DELETE
+- How CORS works and why it must be configured for production
+- How to deploy a full-stack app across Vercel, Railway, and Neon
+- How to manage client-side session state without a backend auth library
 
 ---
 
